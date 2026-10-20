@@ -24,7 +24,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
-    // Pinned stable GeckoView for reproducible experiments.
-    implementation("org.mozilla.geckoview:geckoview:158.0.20261007201254")
+    // Only ship the ARM64 engine. The generic GeckoView artifact bundles
+    // multiple architectures and was unnecessarily large for this prototype.
+    implementation("org.mozilla.geckoview:geckoview-arm64-v8a:158.0.20261007201254")
     testImplementation("junit:junit:4.13.2")
 }
