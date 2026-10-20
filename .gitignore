@@ -10,6 +10,7 @@ local.properties
 *.jks
 *.hprof
 captures/
+gradle/wrapper/gradle-wrapper.jar
 # Rust / native objects
 **/target/
 app/src/main/jniLibs/

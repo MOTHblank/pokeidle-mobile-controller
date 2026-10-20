@@ -27,17 +27,23 @@ before attempting the browser-to-native handoff.
 Open this repository in **Android Studio** with JDK 17, Android SDK 35 and
 Gradle 8.13. Mozilla's Maven repository is included in settings.gradle.kts.
 
-If you have Gradle 8.13 installed on PATH:
+Use the included checksum-verified Gradle launcher; it downloads the
+**official Gradle 8.13 wrapper JAR** on first execution, verifies Gradle's published SHA-256, and then downloads the pinned Gradle distribution
+(with its own SHA-256 check). No global Gradle installation is required.
+
+Linux/macOS:
 
 ```bash
-gradle :app:testDebugUnitTest :app:assembleDebug
+./gradlew :app:testDebugUnitTest :app:assembleDebug
+```
+
+Windows:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
 ```
 
 APK: `app/build/outputs/apk/debug/app-debug.apk`.
-
-The Gradle wrapper properties are pinned, but the binary wrapper JAR is not
-committed in this initial bootstrap. You can generate a local wrapper with
-`gradle wrapper --gradle-version 8.13` if you want `./gradlew`.
 
 To build the JNI engine on a Linux development machine with Android NDK:
 
