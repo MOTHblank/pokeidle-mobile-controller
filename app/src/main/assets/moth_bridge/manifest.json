@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "name": "Moth Mobile GeckoView Bootstrap Probe",
+  "version": "0.1.0",
+  "description": "Reports page and authentication-transport readiness without sending credentials.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "moth-mobile-bridge@pokeidle.local"
+    }
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pokeidle.io/*",
+        "https://*.pokeidle.io/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "permissions": [
+    "nativeMessaging",
+    "nativeMessagingFromContent",
+    "geckoViewAddons",
+    "cookies",
+    "https://pokeidle.io/*",
+    "https://*.pokeidle.io/*"
+  ]
+}
