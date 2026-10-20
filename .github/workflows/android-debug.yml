@@ -18,11 +18,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # setup-android@v3 installed the removed SDK "tools" package and
+      # failed before compilation. v4 defaults to supported platform-tools.
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - name: Install Android SDK
+      - name: Install Android SDK and ARM64 NDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -34,7 +38,6 @@ jobs:
         run: |
           set -euo pipefail
           NDK="$ANDROID_HOME/ndk/27.0.12077973"
-          echo "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
           export PATH="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
           export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=aarch64-linux-android26-clang
           export CC_aarch64_linux_android=aarch64-linux-android26-clang
@@ -43,14 +46,23 @@ jobs:
           mkdir -p app/src/main/jniLibs/arm64-v8a
           cp rust/core/target/aarch64-linux-android/release/libmoth_mobile_core.so app/src/main/jniLibs/arm64-v8a/
       - name: Build GeckoView APK and JVM tests
-        run: gradle --no-daemon :app:testDebugUnitTest :app:assembleDebug
-      - name: APK contents
+        run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
+      - name: Verify testable GeckoView APK
+        shell: bash
         run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          unzip -Z1 "$APK" | grep -Fx -- 'assets/moth_bridge/manifest.json' >/dev/null
+          unzip -Z1 "$APK" | grep -Fx -- 'assets/moth_bridge/content.js' >/dev/null
           if [ -f app/src/main/jniLibs/arm64-v8a/libmoth_mobile_core.so ]; then
-            echo "Rust JNI library packaged" >> "$GITHUB_STEP_SUMMARY"
+            unzip -Z1 "$APK" | grep -Fx -- 'lib/arm64-v8a/libmoth_mobile_core.so' >/dev/null
+            echo "ARM64 Rust JNI core included in debug APK." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "GeckoView-only APK: Rust JNI cross-build unavailable (review native step)" >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=GeckoView-only debug APK::Rust JNI cross-build failed; native sessions are not available in this APK."
+            echo "GeckoView-only debug APK (Rust JNI unavailable; see native build logs)." >> "$GITHUB_STEP_SUMMARY"
           fi
+          echo "GeckoView extension assets verified in the APK." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: moth-mobile-geckoview-debug
