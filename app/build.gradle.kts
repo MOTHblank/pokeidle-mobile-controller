@@ -26,4 +26,5 @@ android {
 dependencies {
     // Pinned stable GeckoView for reproducible experiments.
     implementation("org.mozilla.geckoview:geckoview:158.0.20261007201254")
+    testImplementation("junit:junit:4.13.2")
 }
